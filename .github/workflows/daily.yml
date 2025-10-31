@@ -1,0 +1,30 @@
+name: Daily Commit
+
+# needed so the job can push back to the repo
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:        # lets you run it manually
+  schedule:
+    - cron: "0 12 * * *"    # every day at 12:00 UTC
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update activity file
+        run: echo "$(date -u) ✅" >> activity.txt
+
+      - name: Commit and push
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git add activity.txt
+          git commit -m "Auto: daily update" || echo "No changes"
+          git push
